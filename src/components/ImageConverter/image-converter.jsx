@@ -341,7 +341,7 @@ const preprocessImageFull = async (file, quality) => {
             const ifds = UTIF.decode(buffer);
             UTIF.decodeImage(buffer, ifds[0]);
             const rgba = UTIF.toRGBA8(ifds[0]);
-            
+
             const canvas = document.createElement("canvas");
             canvas.width = ifds[0].width;
             canvas.height = ifds[0].height;
@@ -349,7 +349,7 @@ const preprocessImageFull = async (file, quality) => {
             const imgData = ctx.createImageData(ifds[0].width, ifds[0].height);
             imgData.data.set(rgba);
             ctx.putImageData(imgData, 0, 0);
-            
+
             return new Promise((resolve, reject) => {
                 canvas.toBlob((blob) => {
                     if (blob) resolve(blob);
@@ -493,7 +493,7 @@ const Navbar = ({ onConvertClick }) => {
                         Pixel<span style={{ color: C.accent }}>Forge</span>
                     </span>
                 </div>
-                
+
                 {/* Desktop Links */}
                 <div className="pf-nav-links" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 32 }}>
                     {["Features", "How it works", "Converter"].map((lbl) => (
@@ -777,7 +777,7 @@ const STATUS_STYLES = {
     error: { bg: "rgba(248,113,113,.1)", color: C.danger },
 };
 
-const FileItemRow = ({ item, onRemove, onDownload, onCompare, format }) => {
+const FileItemRow = ({ item, onRemove, onDownload, onCompare, format, activeTab }) => {
     const s = STATUS_STYLES[item.status] || STATUS_STYLES.idle;
     const saving = item.newSize && item.origSize
         ? (((item.origSize - item.newSize) / item.origSize) * 100).toFixed(1)
@@ -791,17 +791,17 @@ const FileItemRow = ({ item, onRemove, onDownload, onCompare, format }) => {
             borderRadius: 14, padding: "14px 18px", transition: "all .2s",
         }}>
             {/* Thumbnail */}
-            <div 
+            <div
                 onClick={() => item.status === "done" && onCompare(item)}
-                style={{ 
-                    position: "relative", 
-                    width: 48, 
-                    height: 48, 
-                    borderRadius: 8, 
+                style={{
+                    position: "relative",
+                    width: 48,
+                    height: 48,
+                    borderRadius: 8,
                     overflow: "hidden",
                     cursor: item.status === "done" ? "pointer" : "default",
-                    flexShrink: 0, 
-                    border: `1px solid ${C.border}` 
+                    flexShrink: 0,
+                    border: `1px solid ${C.border}`
                 }}
                 title={item.status === "done" ? "Click to compare original vs converted" : ""}
             >
@@ -833,12 +833,22 @@ const FileItemRow = ({ item, onRemove, onDownload, onCompare, format }) => {
                     {item.file.name}
                 </div>
                 <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 11, color: C.muted }}>Original: {fmtSize(item.origSize)}</span>
-                    {item.newSize > 0 && (
-                        <span style={{ fontSize: 11, color: saving > 0 ? C.success : C.muted }}>
-                            → {fmtSize(item.newSize)}
-                            {saving > 0 && ` (${saving}% smaller)`}
-                        </span>
+                    {activeTab === 2 ? (
+                        <>
+                            <span style={{ fontSize: 11, color: C.muted }}>Dimensions: {item.width ? `${item.width} x ${item.height}` : "Unknown"}</span>
+                            <span style={{ fontSize: 11, color: C.muted }}>Size: {fmtSize(item.origSize)}</span>
+                            <span style={{ fontSize: 11, color: C.muted }}>Type: {item.file.type || "Unknown"}</span>
+                        </>
+                    ) : (
+                        <>
+                            <span style={{ fontSize: 11, color: C.muted }}>Original: {fmtSize(item.origSize)}</span>
+                            {item.newSize > 0 && (
+                                <span style={{ fontSize: 11, color: saving > 0 ? C.success : C.muted }}>
+                                    → {fmtSize(item.newSize)}
+                                    {saving > 0 && ` (${saving}% smaller)`}
+                                </span>
+                            )}
+                        </>
                     )}
                 </div>
                 {/* Progress bar */}
@@ -851,64 +861,68 @@ const FileItemRow = ({ item, onRemove, onDownload, onCompare, format }) => {
                 </div>
             </div>
 
-            {/* Status badge */}
-            <span className="pf-file-status" style={{
-                fontSize: 11, letterSpacing: ".06em", padding: "3px 10px", borderRadius: 4,
-                background: s.bg, color: s.color, flexShrink: 0,
-            }}>
-                {item.status === "converting"
-                    ? `${Math.round(item.progress)}%`
-                    : item.status.toUpperCase()}
-            </span>
+            {activeTab !== 2 && (
+                <>
+                    {/* Status badge */}
+                    <span className="pf-file-status" style={{
+                        fontSize: 11, letterSpacing: ".06em", padding: "3px 10px", borderRadius: 4,
+                        background: s.bg, color: s.color, flexShrink: 0,
+                    }}>
+                        {item.status === "converting"
+                            ? `${Math.round(item.progress)}%`
+                            : item.status.toUpperCase()}
+                    </span>
+                </>
+            )}
 
             <div className="pf-file-actions" style={{ display: "flex", gap: 8 }}>
                 {/* Per-file Compare */}
-                {item.status === "done" && item.blob && (
+                {activeTab !== 2 && item.status === "done" && item.blob && (
                     <button
-                    onClick={() => onCompare(item)}
-                    title="Compare Original vs Converted"
-                    style={{
-                        background: "rgba(129,140,248,.1)", border: "1px solid rgba(129,140,248,.2)",
-                        color: C.accent3, width: 32, height: 32, borderRadius: 6,
-                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                        flexShrink: 0, transition: "all .2s",
-                    }}
-                >
-                    <FiSliders size={14} />
-                </button>
-            )}
+                        onClick={() => onCompare(item)}
+                        title="Compare Original vs Converted"
+                        style={{
+                            background: "rgba(129,140,248,.1)", border: "1px solid rgba(129,140,248,.2)",
+                            color: C.accent3, width: 32, height: 32, borderRadius: 6,
+                            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                            flexShrink: 0, transition: "all .2s",
+                        }}
+                    >
+                        <FiSliders size={14} />
+                    </button>
+                )}
 
-            {/* Per-file download */}
-            {item.status === "done" && item.blob && (
+                {/* Per-file download */}
+                {activeTab !== 2 && item.status === "done" && item.blob && (
+                    <button
+                        className="pf-fi-dl"
+                        onClick={() => onDownload(item)}
+                        title="Download"
+                        style={{
+                            background: "rgba(110,231,183,.1)", border: "1px solid rgba(110,231,183,.2)",
+                            color: C.accent, width: 32, height: 32, borderRadius: 6,
+                            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                            flexShrink: 0, transition: "all .2s",
+                        }}
+                    >
+                        <FiDownload size={14} />
+                    </button>
+                )}
+
+                {/* Remove */}
                 <button
-                    className="pf-fi-dl"
-                    onClick={() => onDownload(item)}
-                    title="Download"
+                    className="pf-fi-rm"
+                    onClick={() => onRemove(item.id)}
+                    title="Remove"
                     style={{
-                        background: "rgba(110,231,183,.1)", border: "1px solid rgba(110,231,183,.2)",
-                        color: C.accent, width: 32, height: 32, borderRadius: 6,
-                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                        background: "transparent", border: "none", color: C.muted2,
+                        width: 28, height: 28, borderRadius: 4, cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center",
                         flexShrink: 0, transition: "all .2s",
                     }}
                 >
-                    <FiDownload size={14} />
+                    <FiX size={14} />
                 </button>
-            )}
-
-            {/* Remove */}
-            <button
-                className="pf-fi-rm"
-                onClick={() => onRemove(item.id)}
-                title="Remove"
-                style={{
-                    background: "transparent", border: "none", color: C.muted2,
-                    width: 28, height: 28, borderRadius: 4, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0, transition: "all .2s",
-                }}
-            >
-                <FiX size={14} />
-            </button>
             </div>
         </div>
     );
@@ -916,6 +930,7 @@ const FileItemRow = ({ item, onRemove, onDownload, onCompare, format }) => {
 
 // ─── Converter Section ────────────────────────────────────────────────────────
 const ConverterSection = () => {
+    const [activeTab, setActiveTab] = useState(0); // 0: Convert, 1: Resize, 2: Analyze
     const [fileItems, setFileItems] = useState([]);
     const [compareItem, setCompareItem] = useState(null);
     const [format, setFormat] = useState("jpeg");
@@ -935,11 +950,11 @@ const ConverterSection = () => {
         const valid = Array.from(rawList).filter((f) => {
             const ext = f.name.split('.').pop().toLowerCase();
             const mimeType = f.type.toLowerCase();
-            return mimeType.startsWith("image/") || 
-                   ["heic", "heif", "tiff", "tif"].includes(ext) ||
-                   mimeType === "image/heic" || 
-                   mimeType === "image/heif" || 
-                   mimeType === "image/tiff";
+            return mimeType.startsWith("image/") ||
+                ["heic", "heif", "tiff", "tif"].includes(ext) ||
+                mimeType === "image/heic" ||
+                mimeType === "image/heif" ||
+                mimeType === "image/tiff";
         });
         if (!valid.length) { toast.error("No image files detected."); return; }
         if (valid.length > 50) { toast.error("Maximum 50 files per batch."); return; }
@@ -949,12 +964,12 @@ const ConverterSection = () => {
             const ext = file.name.split('.').pop().toLowerCase();
             const isHeic = ["heic", "heif"].includes(ext);
             const isTiff = ["tiff", "tif"].includes(ext);
-            
+
             let thumbUrl = null;
             if (!isHeic && !isTiff && file.type.startsWith("image/")) {
                 thumbUrl = URL.createObjectURL(file);
             }
-            
+
             return {
                 id: itemId,
                 file,
@@ -971,19 +986,30 @@ const ConverterSection = () => {
         setFileItems((prev) => [...prev, ...newItems]);
         toast.success(`${valid.length} file${valid.length > 1 ? "s" : ""} added`);
 
-        // Trigger background preview generation for HEIC and TIFF
+        // Trigger background preview generation and metadata extraction
         newItems.forEach(async (item) => {
             const ext = item.file.name.split('.').pop().toLowerCase();
             const isHeic = ["heic", "heif"].includes(ext);
             const isTiff = ["tiff", "tif"].includes(ext);
+
             if (isHeic || isTiff) {
                 try {
                     const previewBlob = await preprocessImageFull(item.file, 90);
                     const url = URL.createObjectURL(previewBlob);
-                    setFileItems(prev => prev.map(i => i.id === item.id ? { ...i, thumbUrl: url, originalRenderableUrl: url } : i));
+                    const img = new Image();
+                    img.onload = () => {
+                        setFileItems(prev => prev.map(i => i.id === item.id ? { ...i, thumbUrl: url, originalRenderableUrl: url, width: img.naturalWidth, height: img.naturalHeight } : i));
+                    };
+                    img.src = url;
                 } catch (e) {
                     console.error("Failed to generate preview for HEIC/TIFF", item.file.name, e);
                 }
+            } else if (item.thumbUrl) {
+                const img = new Image();
+                img.onload = () => {
+                    setFileItems(prev => prev.map(i => i.id === item.id ? { ...i, width: img.naturalWidth, height: img.naturalHeight } : i));
+                };
+                img.src = item.thumbUrl;
             }
         });
     }, []);
@@ -1012,8 +1038,8 @@ const ConverterSection = () => {
     };
 
     const clearAll = () => {
-        fileItems.forEach((i) => { 
-            if (i.thumbUrl) URL.revokeObjectURL(i.thumbUrl); 
+        fileItems.forEach((i) => {
+            if (i.thumbUrl) URL.revokeObjectURL(i.thumbUrl);
             if (i.convertedUrl) URL.revokeObjectURL(i.convertedUrl);
             if (i.originalRenderableUrl && i.originalRenderableUrl !== i.thumbUrl) {
                 URL.revokeObjectURL(i.originalRenderableUrl);
@@ -1032,8 +1058,8 @@ const ConverterSection = () => {
         if (!pending.length) { toast.info("No files left to convert."); return; }
 
         setIsConverting(true);
-        const mw = maxW ? parseInt(maxW) : null;
-        const mh = maxH ? parseInt(maxH) : null;
+        const mw = (activeTab === 1 && maxW) ? parseInt(maxW) : null;
+        const mh = (activeTab === 1 && maxH) ? parseInt(maxH) : null;
         let doneCount = 0;
 
         for (const item of pending) {
@@ -1043,24 +1069,24 @@ const ConverterSection = () => {
                 const ext = item.file.name.split('.').pop().toLowerCase();
                 const isHeic = ["heic", "heif"].includes(ext);
                 const isTiff = ["tiff", "tif"].includes(ext);
-                
+
                 if (isHeic || isTiff) {
                     updateItem(item.id, { progress: 30 });
                     processingFile = await preprocessImageFull(item.file, quality);
                 }
-                
+
                 updateItem(item.id, { progress: 50 });
-                
+
                 const blob = await convertFile(
                     processingFile, format, quality, mw, mh,
                     (p) => updateItem(item.id, { progress: 50 + (p / 2) })
                 );
-                
+
                 const convertedUrl = URL.createObjectURL(blob);
-                updateItem(item.id, { 
-                    status: "done", 
-                    blob, 
-                    newSize: blob.size, 
+                updateItem(item.id, {
+                    status: "done",
+                    blob,
+                    newSize: blob.size,
                     progress: 100,
                     convertedUrl
                 });
@@ -1125,15 +1151,15 @@ const ConverterSection = () => {
                         display: "flex", alignItems: "center",
                         borderBottom: `1px solid ${C.border}`, padding: "0 8px",
                     }}>
-                        {["Convert & Compress", "Batch Resize ↗", "Analyze ↗"].map((t, i) => (
+                        {["Convert & Compress", "Batch Resize", "Analyze"].map((t, i) => (
                             <div
                                 key={t}
-                                className={`pf-tab${i === 0 ? " active" : ""}`}
-                                onClick={() => i > 0 && toast.info("Coming soon!")}
+                                className={`pf-tab${i === activeTab ? " active" : ""}`}
+                                onClick={() => setActiveTab(i)}
                                 style={{
                                     padding: "16px 20px", fontSize: 13, cursor: "pointer",
-                                    color: i === 0 ? C.accent : C.muted,
-                                    borderBottom: i === 0 ? `2px solid ${C.accent}` : "2px solid transparent",
+                                    color: i === activeTab ? C.accent : C.muted,
+                                    borderBottom: i === activeTab ? `2px solid ${C.accent}` : "2px solid transparent",
                                     transition: "all .2s", letterSpacing: ".02em",
                                 }}
                             >{t}</div>
@@ -1193,97 +1219,107 @@ const ConverterSection = () => {
                         </div>
 
                         {/* ─── SETTINGS ROW ───────────────────────────────────────────── */}
-                        <div className="pf-settings-row" style={{
-                            display: "flex", gap: 16, flexWrap: "wrap", marginTop: 20,
-                            padding: 24, background: C.card2, borderRadius: 14, border: `1px solid ${C.border}`,
-                        }}>
-                            {/* Format */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 160px" }}>
-                                <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>OUTPUT FORMAT</label>
-                                <select
-                                    value={format}
-                                    onChange={(e) => setFormat(e.target.value)}
-                                    style={{
-                                        background: C.card, border: `1px solid ${C.border2}`, color: C.text,
-                                        padding: "9px 12px", borderRadius: 8, fontFamily: "'IBM Plex Mono', monospace",
-                                        fontSize: 13, outline: "none", width: "100%",
-                                    }}
-                                >
-                                    {FORMATS.map((f) => (
-                                        <option key={f.value} value={f.value}>{f.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Quality */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "2 1 200px", opacity: isLossy ? 1 : .45 }}>
-                                <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>
-                                    QUALITY — <span style={{ color: C.accent }}>{quality}%</span>
-                                </label>
-                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                    <input
-                                        type="range" min="10" max="100" step="5"
-                                        value={quality}
-                                        disabled={!isLossy}
-                                        onChange={(e) => setQuality(Number(e.target.value))}
-                                        style={{ flex: 1, height: 4 }}
-                                    />
-                                    <span style={{ fontSize: 13, color: C.accent, minWidth: 32, textAlign: "right" }}>{quality}</span>
+                        {activeTab !== 2 && (
+                            <div className="pf-settings-row" style={{
+                                display: "flex", gap: 16, flexWrap: "wrap", marginTop: 20,
+                                padding: 24, background: C.card2, borderRadius: 14, border: `1px solid ${C.border}`,
+                            }}>
+                                {/* Format */}
+                                <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 160px" }}>
+                                    <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>OUTPUT FORMAT</label>
+                                    <select
+                                        value={format}
+                                        onChange={(e) => setFormat(e.target.value)}
+                                        style={{
+                                            background: C.card, border: `1px solid ${C.border2}`, color: C.text,
+                                            padding: "9px 12px", borderRadius: 8, fontFamily: "'IBM Plex Mono', monospace",
+                                            fontSize: 13, outline: "none", width: "100%",
+                                        }}
+                                    >
+                                        {FORMATS.map((f) => (
+                                            <option key={f.value} value={f.value}>{f.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
 
-                            {/* Max Width */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 120px" }}>
-                                <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>MAX WIDTH (PX)</label>
-                                <input
-                                    type="number"
-                                    value={maxW}
-                                    onChange={(e) => setMaxW(e.target.value)}
-                                    placeholder="e.g. 1920"
-                                    min="1"
-                                    style={{
-                                        background: C.card, border: `1px solid ${C.border2}`, color: C.text,
-                                        padding: "9px 12px", borderRadius: 8, fontFamily: "'IBM Plex Mono', monospace",
-                                        fontSize: 13, outline: "none", width: "100%",
-                                    }}
-                                />
-                            </div>
+                                {/* Quality */}
+                                {activeTab === 0 && (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "2 1 200px", opacity: isLossy ? 1 : .45 }}>
+                                        <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>
+                                            QUALITY — <span style={{ color: C.accent }}>{quality}%</span>
+                                        </label>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                            <input
+                                                type="range" min="10" max="100" step="5"
+                                                value={quality}
+                                                disabled={!isLossy}
+                                                onChange={(e) => setQuality(Number(e.target.value))}
+                                                style={{ flex: 1, height: 4 }}
+                                            />
+                                            <span style={{ fontSize: 13, color: C.accent, minWidth: 32, textAlign: "right" }}>{quality}</span>
+                                        </div>
+                                    </div>
+                                )}
 
-                            {/* Max Height */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 120px" }}>
-                                <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>MAX HEIGHT (PX)</label>
-                                <input
-                                    type="number"
-                                    value={maxH}
-                                    onChange={(e) => setMaxH(e.target.value)}
-                                    placeholder="e.g. 1080"
-                                    min="1"
-                                    style={{
-                                        background: C.card, border: `1px solid ${C.border2}`, color: C.text,
-                                        padding: "9px 12px", borderRadius: 8, fontFamily: "'IBM Plex Mono', monospace",
-                                        fontSize: 13, outline: "none", width: "100%",
-                                    }}
-                                />
-                            </div>
+                                {/* Resize Settings */}
+                                {activeTab === 1 && (
+                                    <>
 
-                            {/* Lock ratio */}
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8, justifyContent: "flex-end" }}>
-                                <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>RATIO</label>
-                                <button
-                                    className="pf-lock-btn"
-                                    onClick={() => setLocked((v) => !v)}
-                                    title={locked ? "Lock aspect ratio (on)" : "Lock aspect ratio (off)"}
-                                    style={{
-                                        background: C.card, border: `1px solid ${locked ? C.accent : C.border2}`,
-                                        color: locked ? C.accent : C.muted, width: 38, height: 38, borderRadius: 8,
-                                        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                                        transition: "all .2s",
-                                    }}
-                                >
-                                    {locked ? <FiLock size={15} /> : <FiUnlock size={15} />}
-                                </button>
+                                        {/* Max Width */}
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 120px" }}>
+                                            <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>MAX WIDTH (PX)</label>
+                                            <input
+                                                type="number"
+                                                value={maxW}
+                                                onChange={(e) => setMaxW(e.target.value)}
+                                                placeholder="e.g. 1920"
+                                                min="1"
+                                                style={{
+                                                    background: C.card, border: `1px solid ${C.border2}`, color: C.text,
+                                                    padding: "9px 12px", borderRadius: 8, fontFamily: "'IBM Plex Mono', monospace",
+                                                    fontSize: 13, outline: "none", width: "100%",
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Max Height */}
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: "1 1 120px" }}>
+                                            <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>MAX HEIGHT (PX)</label>
+                                            <input
+                                                type="number"
+                                                value={maxH}
+                                                onChange={(e) => setMaxH(e.target.value)}
+                                                placeholder="e.g. 1080"
+                                                min="1"
+                                                style={{
+                                                    background: C.card, border: `1px solid ${C.border2}`, color: C.text,
+                                                    padding: "9px 12px", borderRadius: 8, fontFamily: "'IBM Plex Mono', monospace",
+                                                    fontSize: 13, outline: "none", width: "100%",
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Lock ratio */}
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 8, justifyContent: "flex-end" }}>
+                                            <label style={{ fontSize: 11, letterSpacing: ".08em", color: C.muted }}>RATIO</label>
+                                            <button
+                                                className="pf-lock-btn"
+                                                onClick={() => setLocked((v) => !v)}
+                                                title={locked ? "Lock aspect ratio (on)" : "Lock aspect ratio (off)"}
+                                                style={{
+                                                    background: C.card, border: `1px solid ${locked ? C.accent : C.border2}`,
+                                                    color: locked ? C.accent : C.muted, width: 38, height: 38, borderRadius: 8,
+                                                    cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                                                    transition: "all .2s",
+                                                }}
+                                            >
+                                                {locked ? <FiLock size={15} /> : <FiUnlock size={15} />}
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                        </div>
+                        )}
 
                         {/* ─── FILE QUEUE ─────────────────────────────────────────────── */}
                         {fileItems.length > 0 && (
@@ -1296,6 +1332,7 @@ const ConverterSection = () => {
                                         onRemove={removeItem}
                                         onDownload={downloadItem}
                                         onCompare={setCompareItem}
+                                        activeTab={activeTab}
                                     />
                                 ))}
                             </div>
@@ -1313,7 +1350,7 @@ const ConverterSection = () => {
                                 </span>
 
                                 {/* Convert */}
-                                {hasIdle && (
+                                {activeTab !== 2 && hasIdle && (
                                     <button
                                         className="pf-convert-btn"
                                         onClick={startConversion}
@@ -1328,12 +1365,12 @@ const ConverterSection = () => {
                                         }}
                                     >
                                         {isConverting && <FiRefreshCw size={16} className="pf-spin" />}
-                                        {isConverting ? "Converting…" : `Convert ${fileItems.filter((i) => i.status === "idle").length} File${fileItems.filter((i) => i.status === "idle").length !== 1 ? "s" : ""}`}
+                                        {isConverting ? "Converting…" : (activeTab === 1 ? `Resize ${fileItems.filter((i) => i.status === "idle").length} File${fileItems.filter((i) => i.status === "idle").length !== 1 ? "s" : ""}` : `Convert ${fileItems.filter((i) => i.status === "idle").length} File${fileItems.filter((i) => i.status === "idle").length !== 1 ? "s" : ""}`)}
                                     </button>
                                 )}
 
                                 {/* Download all */}
-                                {hasDone && (
+                                {activeTab !== 2 && hasDone && (
                                     <button
                                         className="pf-dl-btn"
                                         onClick={downloadAll}
@@ -1413,10 +1450,10 @@ const CompareModal = ({ item, format, onClose }) => {
         };
         window.addEventListener("resize", handleResize);
         handleResize(); // Initial measurement
-        
+
         // Disable body scroll when modal is open
         document.body.style.overflow = "hidden";
-        
+
         return () => {
             window.removeEventListener("resize", handleResize);
             document.body.style.overflow = "";
@@ -1502,8 +1539,8 @@ const CompareModal = ({ item, format, onClose }) => {
                         src={convUrl}
                         alt="Converted"
                         style={{
-                            width: dimensions.width || "100%", 
-                            height: dimensions.height || "100%", 
+                            width: dimensions.width || "100%",
+                            height: dimensions.height || "100%",
                             objectFit: "contain",
                             pointerEvents: "none", userSelect: "none",
                         }}
