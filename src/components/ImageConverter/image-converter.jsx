@@ -446,12 +446,32 @@ const GlobalStyles = () => (
     .pf-thumb-hover:hover {
         opacity: 1 !important;
     }
+
+    /* --- MOBILE RESPONSIVENESS --- */
+    @media (max-width: 768px) {
+        .pf-nav { padding: 0 16px !important; }
+        .pf-nav-links { display: none !important; }
+        .pf-hero-title { font-size: clamp(40px, 10vw, 52px) !important; }
+        .pf-section { padding: 60px 16px !important; }
+        .pf-grid-3 { grid-template-columns: 1fr !important; gap: 48px !important; }
+        .pf-step-line { display: none !important; }
+        .pf-settings-row { flex-direction: column !important; padding: 16px !important; gap: 16px !important; }
+        .pf-action-bar { flex-direction: column !important; align-items: stretch !important; gap: 12px !important; }
+        .pf-action-bar button { width: 100% !important; justify-content: center !important; margin-left: 0 !important; }
+        .pf-tab { padding: 12px 10px !important; font-size: 11px !important; }
+        .pf-tab-extra { display: none !important; }
+        .pf-hero-stats { flex-direction: column !important; gap: 32px !important; }
+        .pf-file-row { flex-wrap: wrap !important; }
+        .pf-file-status { order: 2; margin-left: auto; }
+        .pf-file-actions { order: 3; display: flex; gap: 8px; width: 100%; justify-content: flex-end; margin-top: 8px; }
+        .pf-dropzone-inner { padding: 32px 16px !important; }
+    }
   `}</style>
 );
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 const Navbar = ({ onConvertClick }) => (
-    <nav style={{
+    <nav className="pf-nav" style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         height: 64, display: "flex", alignItems: "center", padding: "0 40px",
         background: "rgba(7,7,14,.88)", backdropFilter: "blur(12px)",
@@ -468,7 +488,7 @@ const Navbar = ({ onConvertClick }) => (
                 Pixel<span style={{ color: C.accent }}>Forge</span>
             </span>
         </div>
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 32 }}>
+        <div className="pf-nav-links" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 32 }}>
             {["Features", "How it works", "Converter"].map((lbl) => (
                 <a
                     key={lbl}
@@ -517,7 +537,7 @@ const Hero = ({ onStart }) => (
         </div>
 
         {/* Headline */}
-        <h1 className="pf-fadeup" style={{
+        <h1 className="pf-fadeup pf-hero-title" style={{
             fontFamily: "'Cormorant Garamond', serif", fontWeight: 300,
             fontSize: "clamp(52px, 8vw, 96px)", lineHeight: 1.0,
             letterSpacing: "-.02em", marginBottom: 24, position: "relative",
@@ -557,7 +577,7 @@ const Hero = ({ onStart }) => (
         </div>
 
         {/* Stats row */}
-        <div className="pf-fadeup" style={{
+        <div className="pf-fadeup pf-hero-stats" style={{
             display: "flex", gap: 48, marginTop: 64, position: "relative",
             borderTop: `1px solid ${C.border}`, paddingTop: 40, flexWrap: "wrap", justifyContent: "center",
         }}>
@@ -611,7 +631,7 @@ const feats = [
 ];
 
 const Features = () => (
-    <section id="features" style={{ padding: "100px 24px" }}>
+    <section id="features" className="pf-section" style={{ padding: "100px 24px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
             <div style={{ fontSize: 11, letterSpacing: ".15em", color: C.accent, marginBottom: 16 }}>CAPABILITIES</div>
             <h2 style={{
@@ -661,7 +681,7 @@ const Features = () => (
 
 // ─── How It Works ─────────────────────────────────────────────────────────────
 const HowItWorks = () => (
-    <section id="how-it-works" style={{
+    <section id="how-it-works" className="pf-section" style={{
         padding: "100px 24px", background: C.surface,
         borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
     }}>
@@ -673,8 +693,8 @@ const HowItWorks = () => (
             }}>
                 Three steps to<br /><span style={{ color: C.accent }}>perfect images.</span>
             </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32, position: "relative" }}>
-                <div style={{
+            <div className="pf-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32, position: "relative" }}>
+                <div className="pf-step-line" style={{
                     position: "absolute", top: 27, left: "10%", right: "10%", height: 1,
                     background: `linear-gradient(90deg, transparent, ${C.border2}, transparent)`,
                 }} />
@@ -715,7 +735,7 @@ const FileItemRow = ({ item, onRemove, onDownload, onCompare, format }) => {
         : null;
 
     return (
-        <div style={{
+        <div className="pf-file-row" style={{
             display: "flex", alignItems: "center", gap: 14,
             background: item.status === "done" ? "rgba(52,211,153,.03)" : C.card2,
             border: `1px solid ${item.status === "done" ? "rgba(52,211,153,.3)" : item.status === "error" ? "rgba(248,113,113,.3)" : C.border}`,
@@ -783,7 +803,7 @@ const FileItemRow = ({ item, onRemove, onDownload, onCompare, format }) => {
             </div>
 
             {/* Status badge */}
-            <span style={{
+            <span className="pf-file-status" style={{
                 fontSize: 11, letterSpacing: ".06em", padding: "3px 10px", borderRadius: 4,
                 background: s.bg, color: s.color, flexShrink: 0,
             }}>
@@ -792,9 +812,10 @@ const FileItemRow = ({ item, onRemove, onDownload, onCompare, format }) => {
                     : item.status.toUpperCase()}
             </span>
 
-            {/* Per-file Compare */}
-            {item.status === "done" && item.blob && (
-                <button
+            <div className="pf-file-actions" style={{ display: "flex", gap: 8 }}>
+                {/* Per-file Compare */}
+                {item.status === "done" && item.blob && (
+                    <button
                     onClick={() => onCompare(item)}
                     title="Compare Original vs Converted"
                     style={{
@@ -839,6 +860,7 @@ const FileItemRow = ({ item, onRemove, onDownload, onCompare, format }) => {
             >
                 <FiX size={14} />
             </button>
+            </div>
         </div>
     );
 };
@@ -1033,7 +1055,7 @@ const ConverterSection = () => {
 
     // ── Render ──────────────────────────────────────────────────────────────────
     return (
-        <section id="converter" style={{ padding: "100px 24px", background: C.surface }}>
+        <section id="converter" className="pf-section" style={{ padding: "100px 24px", background: C.surface }}>
             <div style={{ maxWidth: 1100, margin: "0 auto" }}>
                 <div style={{ fontSize: 11, letterSpacing: ".15em", color: C.accent, marginBottom: 16 }}>TOOL</div>
                 <h2 style={{
@@ -1067,7 +1089,7 @@ const ConverterSection = () => {
                                 }}
                             >{t}</div>
                         ))}
-                        <div style={{ marginLeft: "auto", padding: "0 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <div className="pf-tab-extra" style={{ marginLeft: "auto", padding: "0 16px", display: "flex", alignItems: "center", gap: 8 }}>
                             <span style={{ background: C.card2, border: `1px solid ${C.border2}`, padding: "2px 8px", borderRadius: 4, fontSize: 11, color: C.muted }}>Drop</span>
                             <span style={{ fontSize: 11, color: C.muted2 }}>to upload</span>
                         </div>
@@ -1076,7 +1098,7 @@ const ConverterSection = () => {
                     <div style={{ padding: 32 }}>
                         {/* ─── DROP ZONE ──────────────────────────────────────────────── */}
                         <div
-                            className={`pf-dropzone${isDragging ? " drag-over" : ""}`}
+                            className={`pf-dropzone pf-dropzone-inner ${isDragging ? "drag-over" : ""}`}
                             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                             onDragLeave={() => setIsDragging(false)}
                             onDrop={handleDrop}
@@ -1122,7 +1144,7 @@ const ConverterSection = () => {
                         </div>
 
                         {/* ─── SETTINGS ROW ───────────────────────────────────────────── */}
-                        <div style={{
+                        <div className="pf-settings-row" style={{
                             display: "flex", gap: 16, flexWrap: "wrap", marginTop: 20,
                             padding: 24, background: C.card2, borderRadius: 14, border: `1px solid ${C.border}`,
                         }}>
@@ -1232,7 +1254,7 @@ const ConverterSection = () => {
 
                         {/* ─── ACTION BAR ─────────────────────────────────────────────── */}
                         {fileItems.length > 0 && (
-                            <div style={{
+                            <div className="pf-action-bar" style={{
                                 display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
                                 marginTop: 24, paddingTop: 24, borderTop: `1px solid ${C.border}`,
                             }}>
