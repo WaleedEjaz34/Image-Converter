@@ -232,7 +232,7 @@ import { saveAs } from "file-saver";
 import {
     FiUploadCloud, FiDownload, FiRefreshCw, FiX, FiShield, FiZap,
     FiLayers, FiLock, FiUnlock, FiImage, FiCheckCircle, FiAlertCircle,
-    FiSliders, FiMaximize2, FiPackage, FiArrowRight, FiGrid,
+    FiSliders, FiMaximize2, FiPackage, FiArrowRight, FiGrid, FiMenu,
 } from "react-icons/fi";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -451,6 +451,7 @@ const GlobalStyles = () => (
     @media (max-width: 768px) {
         .pf-nav { padding: 0 16px !important; }
         .pf-nav-links { display: none !important; }
+        .pf-mobile-menu-btn { display: flex !important; }
         .pf-hero-title { font-size: clamp(40px, 10vw, 52px) !important; }
         .pf-section { padding: 60px 16px !important; }
         .pf-grid-3 { grid-template-columns: 1fr !important; gap: 48px !important; }
@@ -470,44 +471,92 @@ const GlobalStyles = () => (
 );
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
-const Navbar = ({ onConvertClick }) => (
-    <nav className="pf-nav" style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        height: 64, display: "flex", alignItems: "center", padding: "0 40px",
-        background: "rgba(7,7,14,.88)", backdropFilter: "blur(12px)",
-        borderBottom: `1px solid ${C.border}`,
-    }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{
-                width: 32, height: 32, background: C.accent, borderRadius: 7,
-                display: "flex", alignItems: "center", justifyContent: "center",
+const Navbar = ({ onConvertClick }) => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+    return (
+        <>
+            <nav className="pf-nav" style={{
+                position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+                height: 64, display: "flex", alignItems: "center", padding: "0 40px",
+                background: "rgba(7,7,14,.88)", backdropFilter: "blur(12px)",
+                borderBottom: `1px solid ${C.border}`,
             }}>
-                <FiGrid size={17} color="#07070E" strokeWidth={2.5} />
-            </div>
-            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 500, color: C.text }}>
-                Pixel<span style={{ color: C.accent }}>Forge</span>
-            </span>
-        </div>
-        <div className="pf-nav-links" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 32 }}>
-            {["Features", "How it works", "Converter"].map((lbl) => (
-                <a
-                    key={lbl}
-                    href={`#${lbl.toLowerCase().replace(/ /g, "-")}`}
-                    className="pf-nav-link"
-                    style={{ color: C.muted, textDecoration: "none", fontSize: 13, letterSpacing: ".04em", transition: "color .2s" }}
-                >{lbl}</a>
-            ))}
-            <button
-                onClick={onConvertClick}
-                style={{
-                    background: C.accent, color: "#07070E", border: "none",
-                    padding: "8px 20px", borderRadius: 8, fontFamily: "'IBM Plex Mono', monospace",
-                    fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "opacity .2s",
-                }}
-            >Convert Now</button>
-        </div>
-    </nav>
-);
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                        width: 32, height: 32, background: C.accent, borderRadius: 7,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                        <FiGrid size={17} color="#07070E" strokeWidth={2.5} />
+                    </div>
+                    <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 500, color: C.text }}>
+                        Pixel<span style={{ color: C.accent }}>Forge</span>
+                    </span>
+                </div>
+                
+                {/* Desktop Links */}
+                <div className="pf-nav-links" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 32 }}>
+                    {["Features", "How it works", "Converter"].map((lbl) => (
+                        <a
+                            key={lbl}
+                            href={`#${lbl.toLowerCase().replace(/ /g, "-")}`}
+                            className="pf-nav-link"
+                            style={{ color: C.muted, textDecoration: "none", fontSize: 13, letterSpacing: ".04em", transition: "color .2s" }}
+                        >{lbl}</a>
+                    ))}
+                    <button
+                        onClick={onConvertClick}
+                        style={{
+                            background: C.accent, color: "#07070E", border: "none",
+                            padding: "8px 20px", borderRadius: 8, fontFamily: "'IBM Plex Mono', monospace",
+                            fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "opacity .2s",
+                        }}
+                    >Convert Now</button>
+                </div>
+
+                {/* Mobile Menu Button */}
+                <button
+                    className="pf-mobile-menu-btn"
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    style={{
+                        marginLeft: "auto", background: "transparent", border: "none",
+                        color: C.text, cursor: "pointer", display: "none", alignItems: "center", justifyContent: "center"
+                    }}
+                >
+                    {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+                </button>
+            </nav>
+
+            {/* Mobile Dropdown */}
+            {isMenuOpen && (
+                <div style={{
+                    position: "fixed", top: 64, left: 0, right: 0, zIndex: 99,
+                    background: "rgba(7,7,14,.98)", backdropFilter: "blur(16px)",
+                    borderBottom: `1px solid ${C.border}`, padding: "24px 20px",
+                    display: "flex", flexDirection: "column", gap: 20,
+                    animation: "fadeUp 0.2s ease"
+                }}>
+                    {["Features", "How it works", "Converter"].map((lbl) => (
+                        <a
+                            key={lbl}
+                            href={`#${lbl.toLowerCase().replace(/ /g, "-")}`}
+                            onClick={() => setIsMenuOpen(false)}
+                            style={{ color: C.text, textDecoration: "none", fontSize: 16, fontWeight: 500, padding: "8px 0", borderBottom: `1px solid ${C.border2}` }}
+                        >{lbl}</a>
+                    ))}
+                    <button
+                        onClick={() => { setIsMenuOpen(false); onConvertClick(); }}
+                        style={{
+                            background: C.accent, color: "#07070E", border: "none",
+                            padding: "14px", borderRadius: 8, fontFamily: "'IBM Plex Mono', monospace",
+                            fontSize: 15, fontWeight: 600, cursor: "pointer", marginTop: 8
+                        }}
+                    >Convert Now</button>
+                </div>
+            )}
+        </>
+    );
+};
 
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 const Hero = ({ onStart }) => (
